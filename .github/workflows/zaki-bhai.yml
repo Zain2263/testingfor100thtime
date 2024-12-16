@@ -1,0 +1,26 @@
+name: CI + CD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  Staging:
+    runs-on: ubuntu-latest
+    environment: Staging
+    steps:
+      - name: Execute remote SSH commands using SSH key
+        uses: appleboy/ssh-action@master
+        with:
+          host: 156.67.80.49
+          username: root
+          key: ${{ secrets.SSH_KEY }}
+          # port: 22 (default port, can be omitted if 22)
+          script: |
+            cd /root/code/hadielearn-prod-13
+            git pull
+            #npm install -f
+            #pm2 restart backend
+            docker stop hadielearn:latest
+            docker rmi -f hadielearn:latest
+            docker build . -t hadielearn:latest
+            docker run -d -p 3000:3000 hadielearn:latest
